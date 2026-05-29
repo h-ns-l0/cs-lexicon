@@ -3,8 +3,8 @@ import { useCards } from '../hooks/useCards';
 import type { Term, Category } from '../types';
 
 interface AddTermModalProps {
-  open: boolean;
   defaultCategory?: Category;
+  editTerm?: Term;            // 있으면 편집 모드, 없으면 추가 모드
   onClose: () => void;
 }
 
@@ -17,22 +17,20 @@ const categoryOptions: { value: Category; label: string }[] = [
   { value: 'design-pattern', label: '디자인 패턴' },
 ];
 
-export default function AddTermModal({ open, defaultCategory, onClose }: AddTermModalProps) {
+export default function AddTermModal({ defaultCategory, editTerm, onClose }: AddTermModalProps) {
   const { dispatch } = useCards();
-  const [name, setName] = useState('');
-  const [englishName, setEnglishName] = useState('');
-  const [category, setCategory] = useState<Category>(defaultCategory || 'data-structure');
-  const [definition, setDefinition] = useState('');
-  const [complexity, setComplexity] = useState('');
-  const [keywords, setKeywords] = useState('');
-  const [example, setExample] = useState('');
 
-  if (!open) return null;
-
-  const reset = () => {
-    setName(''); setEnglishName(''); setDefinition('');
-    setComplexity(''); setKeywords(''); setExample('');
-  };
+  // editTerm이 있으면 그 값으로, 없으면 빈 값으로 초기화
+  // (호출부에서 key를 주므로, 다른 카드를 편집할 때마다 컴포넌트가 새로 마운트되어 재초기화됨)
+  const [name, setName] = useState(editTerm?.name ?? '');
+  const [englishName, setEnglishName] = useState(editTerm?.englishName ?? '');
+  const [category, setCategory] = useState<Category>(
+    editTerm?.category ?? defaultCategory ?? 'data-structure'
+  );
+  const [definition, setDefinition] = useState(editTerm?.definition ?? '');
+  const [complexity, setComplexity] = useState(editTerm?.complexity ?? '');
+  const [keywords, setKeywords] = useState(editTerm?.keywords.join(', ') ?? '');
+  const [example, setExample] = useState(editTerm?.example ?? '');
 
   const handleSubmit = () => {
     if (!name.trim() || !definition.trim()) {
@@ -41,27 +39,26 @@ export default function AddTermModal({ open, defaultCategory, onClose }: AddTerm
     }
 
     const term: Term = {
-      id: `user-${Date.now()}`,
+      id: editTerm ? editTerm.id : `user-${Date.now()}`,
       name: name.trim(),
       englishName: englishName.trim() || undefined,
       category,
       definition: definition.trim(),
       complexity: complexity.trim() || undefined,
-      keywords: keywords.split(',').map(k => k.trim()).filter(Boolean),
+      keywords: keywords.split(',').map((k) => k.trim()).filter(Boolean),
       example: example.trim() || undefined,
-      related: [],
-      createdAt: Date.now(),
+      related: editTerm ? editTerm.related : [],
+      createdAt: editTerm ? editTerm.createdAt : Date.now(),
     };
 
-    dispatch({ type: 'ADD_TERM', term });
-    reset();
+    dispatch({ type: editTerm ? 'UPDATE_TERM' : 'ADD_TERM', term });
     onClose();
   };
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
-        <h2>새 용어 추가</h2>
+        <h2>{editTerm ? '용어 편집' : '새 용어 추가'}</h2>
         <div className="modal-form">
           <label>
             <span>용어 이름 *</span>
@@ -98,7 +95,9 @@ export default function AddTermModal({ open, defaultCategory, onClose }: AddTerm
         </div>
         <div className="modal-actions">
           <button onClick={onClose} className="btn-secondary">취소</button>
-          <button onClick={handleSubmit} className="btn-primary">추가</button>
+          <button onClick={handleSubmit} className="btn-primary">
+            {editTerm ? '저장' : '추가'}
+          </button>
         </div>
       </div>
     </div>

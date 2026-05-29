@@ -72,11 +72,13 @@ export default function Learn() {
           </p>
         )}
 
-        <AddTermModal
-          open={modalOpen}
-          defaultCategory={category as Category}
-          onClose={() => setModalOpen(false)}
-        />
+{modalOpen && (
+  <AddTermModal
+    key={`add-${category}`}
+    defaultCategory={category as Category}
+    onClose={() => setModalOpen(false)}
+  />
+)}
       </main>
     </div>
   );

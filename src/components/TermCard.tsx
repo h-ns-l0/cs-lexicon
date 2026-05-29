@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import type { Term } from '../types';
 
 // 🔑 자료 요구사항 "TypeScript를 1개 이상의 컴포넌트에 적용"의 모범 충족
@@ -62,6 +63,13 @@ export default function TermCard({ term, onClick }: TermCardProps) {
               <code>{term.example}</code>
             </>
           )}
+          <Link
+            to={`/term/${term.id}`}
+            className="detail-link"
+            onClick={(e) => e.stopPropagation()}
+          >
+            상세 / 편집 →
+          </Link>
         </div>
       </div>
     </div>
